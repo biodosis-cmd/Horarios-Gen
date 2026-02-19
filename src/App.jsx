@@ -30,11 +30,14 @@ const AppContent = () => {
     </MainLayout>
   );
 };
+import ReloadPrompt from '@/components/common/ReloadPrompt';
+
 export default function App() {
   return (
     <UIProvider>
       <ModalProvider>
         <AppContent />
+        <ReloadPrompt />
       </ModalProvider>
     </UIProvider>
   );

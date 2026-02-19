@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { X, Save, Plus, Trash2, Upload, Copy, Check, FileText } from 'lucide-react';
+import { X, Save, Plus, Trash2, Upload, Copy, Check, FileText, Menu } from 'lucide-react';
 import { LISTA_CURSOS, LISTA_ASIGNATURAS, DIAS_SEMANA } from '@/constants';
 import { parseScheduleExcel } from '@/utils/excelImport';
 import { encryptData } from '@/utils/crypto';
@@ -27,6 +27,7 @@ const ScheduleEditorModal = ({ isOpen, onClose, scheduleToEdit = null, cloneFrom
     const fileInputRef = useRef(null);
     const [showExportModal, setShowExportModal] = useState(false);
     const [encryptedString, setEncryptedString] = useState('');
+    const [showMobileMenu, setShowMobileMenu] = useState(false);
 
     const flatBlocks = useMemo(() => {
         const blocks = [];
@@ -126,35 +127,46 @@ const ScheduleEditorModal = ({ isOpen, onClose, scheduleToEdit = null, cloneFrom
                 <div className="p-4 border-b border-slate-700 bg-slate-800/30 flex justify-between items-center gap-4">
                     <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400 whitespace-nowrap">Editor</h2>
 
-                    <div className="flex-grow flex items-center justify-end gap-2 overflow-x-auto">
-                        {/* Import/Backup Group */}
-                        <div className="flex gap-2 mr-2 border-r border-slate-700 pr-2">
-                            <button onClick={() => fileInputRef.current?.click()} className="px-3 py-1.5 bg-emerald-900/30 hover:bg-emerald-900/50 text-emerald-400 rounded-lg flex gap-1 items-center text-xs transition-colors" title="Importar Excel/Backup">
-                                <Upload size={14} /> Importar
-                            </button>
-                            <button onClick={handleExportText} className="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 text-slate-300 rounded-lg flex gap-1 items-center text-xs transition-colors" title="Generar código de respaldo">
-                                <Save size={14} /> Respaldo
-                            </button>
+                    <div className="flex-grow flex items-center justify-end gap-2">
+                        {/* Desktop Actions */}
+                        <div className="hidden md:flex items-center gap-2 overflow-x-auto">
+                            {/* Import/Backup Group */}
+                            <div className="flex gap-2 mr-2 border-r border-slate-700 pr-2">
+                                <button onClick={() => fileInputRef.current?.click()} className="px-3 py-1.5 bg-emerald-900/30 hover:bg-emerald-900/50 text-emerald-400 rounded-lg flex gap-1 items-center text-xs transition-colors" title="Importar Excel/Backup">
+                                    <Upload size={14} /> Importar
+                                </button>
+                                <button onClick={handleExportText} className="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 text-slate-300 rounded-lg flex gap-1 items-center text-xs transition-colors" title="Generar código de respaldo">
+                                    <Save size={14} /> Respaldo
+                                </button>
+                            </div>
+
+                            {/* Document Export Group */}
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    value={teacherName}
+                                    onChange={e => setTeacherName(e.target.value)}
+                                    placeholder="Nombre Docente..."
+                                    className="w-40 bg-slate-900 border border-slate-600 rounded-lg p-1.5 text-xs text-slate-200 focus:border-indigo-500 outline-none placeholder:text-slate-600"
+                                />
+                                <button onClick={handleExportPDF} className="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 text-slate-300 rounded-lg flex gap-1 items-center text-xs transition-colors" title="Exportar PDF Estándar">
+                                    <FileText size={14} /> PDF Std
+                                </button>
+                                <button onClick={() => generateCreativePDF(scheduleData, teacherName, validYear)} className="px-3 py-1.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white rounded-lg flex gap-1 items-center text-xs transition-all shadow-lg shadow-purple-500/20" title="Exportar PDF Creativo">
+                                    <FileText size={14} /> PDF Pro
+                                </button>
+                            </div>
                         </div>
 
-                        {/* Document Export Group */}
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="text"
-                                value={teacherName}
-                                onChange={e => setTeacherName(e.target.value)}
-                                placeholder="Nombre Docente..."
-                                className="w-40 bg-slate-900 border border-slate-600 rounded-lg p-1.5 text-xs text-slate-200 focus:border-indigo-500 outline-none placeholder:text-slate-600"
-                            />
-                            <button onClick={handleExportPDF} className="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 text-slate-300 rounded-lg flex gap-1 items-center text-xs transition-colors" title="Exportar PDF Estándar">
-                                <FileText size={14} /> PDF Std
-                            </button>
-                            <button onClick={() => generateCreativePDF(scheduleData, teacherName, validYear)} className="px-3 py-1.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white rounded-lg flex gap-1 items-center text-xs transition-all shadow-lg shadow-purple-500/20" title="Exportar PDF Creativo">
-                                <FileText size={14} /> PDF Pro
-                            </button>
-                        </div>
+                        {/* Mobile Menu Button */}
+                        <button
+                            onClick={() => setShowMobileMenu(!showMobileMenu)}
+                            className="md:hidden p-2 text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
+                        >
+                            <Menu size={20} />
+                        </button>
 
-                        <div className="w-[1px] h-6 bg-slate-700 mx-1"></div>
+                        <div className="hidden md:block w-[1px] h-6 bg-slate-700 mx-1"></div>
 
                         <button onClick={onClose} className="px-3 py-1.5 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
                             <X size={18} />
@@ -162,65 +174,117 @@ const ScheduleEditorModal = ({ isOpen, onClose, scheduleToEdit = null, cloneFrom
                     </div>
                 </div>
 
-                {/* Controls */}
-                <div className="p-3 bg-slate-900/50 flex flex-wrap gap-3 items-end border-b border-slate-700">
-                    <div className="w-24">
-                        <label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Día</label>
-                        <select value={formDia} onChange={e => setFormDia(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-slate-200 focus:border-indigo-500 outline-none">
-                            {DIAS_SEMANA.map((d, i) => <option key={i} value={i + 1}>{d}</option>)}
-                        </select>
-                    </div>
-                    <div className="w-20">
-                        <label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Hora</label>
-                        <input type="time" value={formHora} onChange={e => setFormHora(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-slate-200 focus:border-indigo-500 outline-none" />
-                    </div>
-                    <div className="w-20">
-                        <label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Duración</label>
-                        <select value={formDuracion} onChange={e => setFormDuracion(parseInt(e.target.value))} className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-slate-200 focus:border-indigo-500 outline-none">
-                            <option value={45}>45 min</option>
-                            <option value={90}>90 min</option>
-                        </select>
-                    </div>
-                    <div className="w-28">
-                        <label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Curso</label>
-                        <select value={formCurso} onChange={e => setFormCurso(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-slate-200 focus:border-indigo-500 outline-none">
-                            <option value="">Curso...</option>
-                            {LISTA_CURSOS.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                    </div>
-                    <div className="w-16">
-                        <label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Letra</label>
-                        <select value={formLetter} onChange={e => setFormLetter(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-slate-200 focus:border-indigo-500 outline-none">
-                            <option value="">-</option>
-                            {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'].map(l => <option key={l} value={l}>{l}</option>)}
-                        </select>
-                    </div>
-
-                    <div className="flex-grow min-w-[200px]">
-                        <div className="flex justify-between items-center mb-1">
-                            <label className="text-[10px] uppercase text-slate-500 font-bold block">{isCustomSubject ? 'Detalle / Otro' : 'Asignatura'}</label>
-                            <button onClick={() => setIsCustomSubject(!isCustomSubject)} className="text-[9px] text-indigo-400 hover:text-indigo-300 underline">
-                                {isCustomSubject ? 'Seleccionar lista' : 'Escribir manual'}
+                {/* Mobile Menu Dropdown */}
+                {showMobileMenu && (
+                    <div className="md:hidden bg-slate-800 border-b border-slate-700 p-4 animate-in slide-in-from-top-2">
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                            <button onClick={() => { fileInputRef.current?.click(); setShowMobileMenu(false); }} className="p-3 bg-slate-700/50 hover:bg-slate-700 rounded-xl flex flex-col items-center gap-2 text-xs text-slate-300 transition-colors">
+                                <Upload size={20} className="text-emerald-400" />
+                                Importar Excel
+                            </button>
+                            <button onClick={() => { handleExportText(); setShowMobileMenu(false); }} className="p-3 bg-slate-700/50 hover:bg-slate-700 rounded-xl flex flex-col items-center gap-2 text-xs text-slate-300 transition-colors">
+                                <Save size={20} className="text-blue-400" />
+                                Respaldo
                             </button>
                         </div>
-                        {isCustomSubject ? (
-                            <input type="text"
-                                value={formCustomAsignatura}
-                                onChange={e => setFormCustomAsignatura(e.target.value)}
-                                placeholder="Nombre de la actividad..."
-                                className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-slate-200 focus:border-indigo-500 outline-none"
-                            />
-                        ) : (
-                            <select value={formAsignatura} onChange={e => setFormAsignatura(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-slate-200 focus:border-indigo-500 outline-none">
-                                <option value="">Seleccionar Asignatura...</option>
-                                {LISTA_ASIGNATURAS.map(a => <option key={a} value={a}>{a}</option>)}
-                            </select>
-                        )}
-                    </div>
 
-                    <button onClick={handleAddBlock} className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-bold transition-colors flex items-center gap-2 h-[30px]">
-                        <Plus size={16} /> Agregar
-                    </button>
+                        <div className="space-y-3">
+                            <div>
+                                <label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Nombre Docente</label>
+                                <input
+                                    type="text"
+                                    value={teacherName}
+                                    onChange={e => setTeacherName(e.target.value)}
+                                    placeholder="Nombre para el PDF..."
+                                    className="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-sm text-slate-200 focus:border-indigo-500 outline-none"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button onClick={() => { handleExportPDF(); setShowMobileMenu(false); }} className="p-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs flex items-center justify-center gap-2">
+                                    <FileText size={14} /> PDF Estándar
+                                </button>
+                                <button onClick={() => { generateCreativePDF(scheduleData, teacherName, validYear); setShowMobileMenu(false); }} className="p-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-lg text-xs flex items-center justify-center gap-2">
+                                    <FileText size={14} /> PDF Creativo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Controls */}
+                <div className="p-3 bg-slate-900/50 border-b border-slate-700">
+                    <div className="flex flex-col md:flex-row md:items-end gap-3">
+
+                        {/* Mobile Grid Layout for Inputs */}
+                        <div className="grid grid-cols-2 md:contents gap-2">
+                            <div className="w-full md:w-24">
+                                <label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Día</label>
+                                <select value={formDia} onChange={e => setFormDia(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-slate-200 focus:border-indigo-500 outline-none h-[30px]">
+                                    {DIAS_SEMANA.map((d, i) => <option key={i} value={i + 1}>{d}</option>)}
+                                </select>
+                            </div>
+                            <div className="w-full md:w-20">
+                                <label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Hora</label>
+                                <input type="time" value={formHora} onChange={e => setFormHora(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-slate-200 focus:border-indigo-500 outline-none h-[30px]" />
+                            </div>
+                            <div className="w-full md:w-20">
+                                <label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Duración</label>
+                                <select value={formDuracion} onChange={e => setFormDuracion(parseInt(e.target.value))} className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-slate-200 focus:border-indigo-500 outline-none h-[30px]">
+                                    <option value={45}>45 min</option>
+                                    <option value={90}>90 min</option>
+                                </select>
+                            </div>
+                            <div className="w-full md:w-28">
+                                <label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Curso</label>
+                                <select value={formCurso} onChange={e => setFormCurso(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-slate-200 focus:border-indigo-500 outline-none h-[30px]">
+                                    <option value="">Curso...</option>
+                                    {LISTA_CURSOS.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            </div>
+                            <div className="hidden md:block md:w-16">
+                                <label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Letra</label>
+                                <select value={formLetter} onChange={e => setFormLetter(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-slate-200 focus:border-indigo-500 outline-none h-[30px]">
+                                    <option value="">-</option>
+                                    {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'].map(l => <option key={l} value={l}>{l}</option>)}
+                                </select>
+                            </div>
+                            {/* Mobile only Letter input (part of grid) */}
+                            <div className="md:hidden w-full">
+                                <label className="text-[10px] uppercase text-slate-500 font-bold mb-1 block">Letra</label>
+                                <select value={formLetter} onChange={e => setFormLetter(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-slate-200 focus:border-indigo-500 outline-none h-[30px]">
+                                    <option value="">-</option>
+                                    {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'].map(l => <option key={l} value={l}>{l}</option>)}
+                                </select>
+                            </div>
+                        </div>
+
+
+                        <div className="flex-grow min-w-[200px] w-full md:w-auto">
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="text-[10px] uppercase text-slate-500 font-bold block">{isCustomSubject ? 'Detalle / Otro' : 'Asignatura'}</label>
+                                <button onClick={() => setIsCustomSubject(!isCustomSubject)} className="text-[9px] text-indigo-400 hover:text-indigo-300 underline">
+                                    {isCustomSubject ? 'Seleccionar lista' : 'Escribir manual'}
+                                </button>
+                            </div>
+                            {isCustomSubject ? (
+                                <input type="text"
+                                    value={formCustomAsignatura}
+                                    onChange={e => setFormCustomAsignatura(e.target.value)}
+                                    placeholder="Nombre de la actividad..."
+                                    className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-slate-200 focus:border-indigo-500 outline-none h-[30px]"
+                                />
+                            ) : (
+                                <select value={formAsignatura} onChange={e => setFormAsignatura(e.target.value)} className="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-slate-200 focus:border-indigo-500 outline-none h-[30px]">
+                                    <option value="">Seleccionar Asignatura...</option>
+                                    {LISTA_ASIGNATURAS.map(a => <option key={a} value={a}>{a}</option>)}
+                                </select>
+                            )}
+                        </div>
+
+                        <button onClick={handleAddBlock} className="w-full md:w-auto px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-bold transition-colors flex justify-center items-center gap-2 h-[30px] mt-2 md:mt-0">
+                            <Plus size={16} /> <span className="md:hidden lg:inline">Agregar</span>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Grid */}
@@ -277,7 +341,7 @@ const ScheduleEditorModal = ({ isOpen, onClose, scheduleToEdit = null, cloneFrom
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 };
 
