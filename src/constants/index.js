@@ -17,4 +17,5 @@ export const CURSO_COLORES = {
     '4to Básico': 'bg-teal-500', '5to Básico': 'bg-emerald-500', '6to Básico': 'bg-lime-500',
     '7mo Básico': 'bg-amber-500', '8vo Básico': 'bg-orange-500', '1ro Medio': 'bg-amber-500',
     '2do Medio': 'bg-orange-600', '3ro Medio': 'bg-rose-600', '4to Medio': 'bg-violet-700',
+    '1er Ciclo': 'bg-slate-500', '2do Ciclo': 'bg-slate-500', '3er Ciclo': 'bg-slate-500',
 };

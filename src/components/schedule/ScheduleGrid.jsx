@@ -43,6 +43,10 @@ const ScheduleGrid = ({ startHour = 8, endHour = 18, pixelsPerMinute = 0.9, flat
             return { main: letter ? `K ${letter}` : 'K', sub: 'Kinder' };
         }
 
+        if (courseName.toLowerCase().includes('ciclo')) {
+            return { main: parts[0] + letter, sub: 'Ciclo' };
+        }
+
         // Standard cases: "1ro Básico A"
         let number = parts[0].replace(/(ro|do|to|mo|vo|er|da|ta|ma|va)/g, '');
         let level = '';

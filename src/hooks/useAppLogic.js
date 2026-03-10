@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useModal } from '@/context/ModalContext';
 import { useUI } from '@/context/UIContext';
 export const useAppLogic = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(true);
     const ADMIN_PIN = "302312";
 
     // Auth
