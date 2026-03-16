@@ -24,6 +24,10 @@ const ScheduleEditorModal = ({ isOpen, onClose, scheduleToEdit = null, cloneFrom
     const [formCustomAsignatura, setFormCustomAsignatura] = useState('');
     const [isCustomSubject, setIsCustomSubject] = useState(false);
 
+    // Multi-course State
+    const [isMultiCourse, setIsMultiCourse] = useState(false);
+    const [selectedCursos, setSelectedCursos] = useState([]);
+
     const fileInputExcelRef = useRef(null);
     const fileInputJsonRef = useRef(null);
     const [showExportModal, setShowExportModal] = useState(false);
@@ -43,10 +47,12 @@ const ScheduleEditorModal = ({ isOpen, onClose, scheduleToEdit = null, cloneFrom
                         dia: h.dia,
                         hora: h.hora,
                         duration: h.duration || 45,
-                        curso,
+                        curso: h.isMultiCourse ? "Taller" : curso,
                         asignatura,
                         top: minutesFromStart * PIXELS_PER_MINUTE,
-                        height: (h.duration || 45) * PIXELS_PER_MINUTE
+                        height: (h.duration || 45) * PIXELS_PER_MINUTE,
+                        isMultiCourse: h.isMultiCourse || false,
+                        cursos: h.cursos || []
                     });
                 });
             });
@@ -55,11 +61,13 @@ const ScheduleEditorModal = ({ isOpen, onClose, scheduleToEdit = null, cloneFrom
     }, [scheduleData]);
 
     const handleAddBlock = () => {
-        if (!formCurso) return;
         const finalAsignatura = isCustomSubject ? formCustomAsignatura : formAsignatura;
         if (!finalAsignatura) return;
 
-        const finalCurso = formLetter && formLetter !== '-' ? `${formCurso} ${formLetter}` : formCurso;
+        if (!isMultiCourse && !formCurso) return;
+        if (isMultiCourse && selectedCursos.length === 0) return;
+
+        const finalCurso = isMultiCourse ? "Taller" : (formLetter && formLetter !== '-' ? `${formCurso} ${formLetter}` : formCurso);
 
         // Simple collision check (improved logic needed for full overlap check)
         const conflict = flatBlocks.find(b => b.dia === parseInt(formDia) && b.hora === formHora);
@@ -76,7 +84,9 @@ const ScheduleEditorModal = ({ isOpen, onClose, scheduleToEdit = null, cloneFrom
             newState[finalCurso][finalAsignatura].push({
                 dia: parseInt(formDia),
                 hora: formHora,
-                duration: parseInt(formDuracion)
+                duration: parseInt(formDuracion),
+                isMultiCourse,
+                cursos: isMultiCourse ? [...selectedCursos] : []
             });
             return newState;
         });
@@ -314,6 +324,67 @@ const ScheduleEditorModal = ({ isOpen, onClose, scheduleToEdit = null, cloneFrom
                                 </select>
                             </div>
                         </div>
+
+                        <div className="w-full md:w-auto flex flex-col gap-1">
+                            <label className="text-[10px] uppercase text-slate-500 font-bold block">Modo Clase</label>
+                            <button
+                                onClick={() => setIsMultiCourse(!isMultiCourse)}
+                                className={`h-[30px] px-3 rounded text-[10px] font-bold transition-all border ${isMultiCourse ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}
+                            >
+                                {isMultiCourse ? 'MULTI-CURSO' : 'INDIVIDUAL'}
+                            </button>
+                        </div>
+
+                        {isMultiCourse ? (
+                            <div className="flex-grow min-w-[200px] bg-slate-800 border border-slate-700 rounded p-2 min-h-[60px] md:h-auto flex items-center gap-2">
+                                <div className="flex flex-wrap gap-2 items-center w-full">
+                                    <button
+                                        onClick={() => {
+                                            const ciclo1 = LISTA_CURSOS.slice(2, 6); // 1ro-4to Básico
+                                            setSelectedCursos(prev => [...new Set([...prev, ...ciclo1])]);
+                                        }}
+                                        className="bg-emerald-600/20 text-emerald-400 text-[9px] px-2 py-0.5 rounded border border-emerald-500/30 whitespace-nowrap hover:bg-emerald-600/30"
+                                    >
+                                        + 1er Ciclo
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            const ciclo2 = LISTA_CURSOS.slice(6, 10); // 5to-8vo
+                                            setSelectedCursos(prev => [...new Set([...prev, ...ciclo2])]);
+                                        }}
+                                        className="bg-blue-600/20 text-blue-400 text-[9px] px-2 py-0.5 rounded border border-blue-500/30 whitespace-nowrap hover:bg-blue-600/30"
+                                    >
+                                        + 2do Ciclo
+                                    </button>
+                                    <button
+                                        onClick={() => setSelectedCursos([])}
+                                        className="text-[9px] text-slate-500 hover:text-slate-300 ml-1 underline"
+                                    >
+                                        Limpiar
+                                    </button>
+                                    <div className="h-4 w-[1px] bg-slate-700 mx-1 hidden md:block"></div>
+                                    <div className="flex flex-wrap gap-1">
+                                        {LISTA_CURSOS.map(c => (
+                                            <label key={c} className="flex items-center gap-1 cursor-pointer group">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedCursos.includes(c)}
+                                                    onChange={() => {
+                                                        setSelectedCursos(prev =>
+                                                            prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]
+                                                        );
+                                                    }}
+                                                    className="hidden"
+                                                />
+                                                <span className={`text-[9px] px-1.5 py-0.5 rounded transition-all ${selectedCursos.includes(c) ? 'bg-indigo-500 text-white' : 'bg-slate-700 text-slate-400 group-hover:bg-slate-600'}`}>
+                                                    {c.split(' ')[0]}
+                                                </span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        ) : null}
 
 
                         <div className="flex-grow min-w-[200px] w-full md:w-auto">

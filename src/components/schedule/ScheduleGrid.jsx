@@ -113,9 +113,12 @@ const ScheduleGrid = ({ startHour = 8, endHour = 18, pixelsPerMinute = 0.9, flat
                                         style={{ top: block.top, height: block.height }}>
                                         <div className="flex h-full w-full">
                                             {/* Course Sidebar */}
-                                            <div className={`h-full w-14 min-w-[3.5rem] flex flex-col items-center justify-center ${blockColor} text-white`}>
-                                                <span className={`${main.length > 3 ? 'text-sm' : 'text-xl'} font-bold leading-none text-center px-0.5`}>{main}</span>
-                                                {sub && <span className="text-[9px] uppercase font-medium mt-0.5 opacity-90">{sub}</span>}
+                                            <div className={`h-full w-14 min-w-[3.5rem] flex flex-col items-center justify-center ${block.isMultiCourse ? 'bg-indigo-600' : blockColor} text-white`}>
+                                                <span className={`${main.length > 3 || block.isMultiCourse ? 'text-sm' : 'text-xl'} font-bold leading-none text-center px-0.5`}>
+                                                    {block.isMultiCourse ? 'MLT' : main}
+                                                </span>
+                                                {(sub && !block.isMultiCourse) && <span className="text-[9px] uppercase font-medium mt-0.5 opacity-90">{sub}</span>}
+                                                {block.isMultiCourse && <span className="text-[8px] uppercase font-bold mt-0.5 opacity-90 leading-none">Taller</span>}
                                             </div>
 
                                             {/* Content */}
@@ -128,6 +131,11 @@ const ScheduleGrid = ({ startHour = 8, endHour = 18, pixelsPerMinute = 0.9, flat
                                                 <h3 className={`font-bold text-slate-200 leading-none break-words whitespace-normal w-full overflow-hidden ${isShort ? 'text-[10px] max-h-[2.4em]' : 'text-xs line-clamp-2'}`} title={block.asignatura}>
                                                     {block.asignatura}
                                                 </h3>
+                                                {block.isMultiCourse && block.cursos?.length > 0 && (
+                                                    <p className="text-[8px] text-indigo-300 font-medium mt-1 truncate" title={block.cursos.join(', ')}>
+                                                        {block.cursos.map(c => c.split(' ')[0]).join(', ')}
+                                                    </p>
+                                                )}
 
                                                 {canEdit && (
                                                     <button onClick={(e) => { e.stopPropagation(); onRemoveBlock(block); }}
