@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { X, Save, Plus, Trash2, Upload, Copy, Check, FileText, Menu } from 'lucide-react';
+import { X, Save, Plus, Trash2, Upload, Copy, Check, FileText, Menu, Download } from 'lucide-react';
 import { LISTA_CURSOS, LISTA_ASIGNATURAS, DIAS_SEMANA } from '@/constants';
 import { parseScheduleExcel } from '@/utils/excelImport';
 import { encryptData } from '@/utils/crypto';
@@ -24,7 +24,8 @@ const ScheduleEditorModal = ({ isOpen, onClose, scheduleToEdit = null, cloneFrom
     const [formCustomAsignatura, setFormCustomAsignatura] = useState('');
     const [isCustomSubject, setIsCustomSubject] = useState(false);
 
-    const fileInputRef = useRef(null);
+    const fileInputExcelRef = useRef(null);
+    const fileInputJsonRef = useRef(null);
     const [showExportModal, setShowExportModal] = useState(false);
     const [encryptedString, setEncryptedString] = useState('');
     const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -108,6 +109,48 @@ const ScheduleEditorModal = ({ isOpen, onClose, scheduleToEdit = null, cloneFrom
         generatePDF(scheduleData, teacherName, validYear);
     };
 
+    const handleExportJSON = () => {
+        const dataToExport = {
+            id: scheduleToEdit?.id,
+            name: scheduleToEdit?.name || "Respaldo Horario",
+            validYear,
+            scheduleData,
+            exportedAt: new Date().toISOString()
+        };
+        const dataStr = JSON.stringify(dataToExport, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `respaldo_horario_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
+    const handleImportJSON = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const json = JSON.parse(e.target.result);
+                if (json.scheduleData) {
+                    setScheduleData(json.scheduleData);
+                    if (json.validYear) setValidYear(json.validYear);
+                    alert("Respaldo JSON cargado correctamente.");
+                } else {
+                    alert("El archivo JSON no parece ser un respaldo válido.");
+                }
+            } catch (err) {
+                alert("Error al leer el archivo JSON.");
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = null;
+    };
+
     useEffect(() => {
         if (isOpen) {
             if (scheduleToEdit) {
@@ -132,11 +175,17 @@ const ScheduleEditorModal = ({ isOpen, onClose, scheduleToEdit = null, cloneFrom
                         <div className="hidden md:flex items-center gap-2 overflow-x-auto">
                             {/* Import/Backup Group */}
                             <div className="flex gap-2 mr-2 border-r border-slate-700 pr-2">
-                                <button onClick={() => fileInputRef.current?.click()} className="px-3 py-1.5 bg-emerald-900/30 hover:bg-emerald-900/50 text-emerald-400 rounded-lg flex gap-1 items-center text-xs transition-colors" title="Importar Excel/Backup">
-                                    <Upload size={14} /> Importar
+                                <button onClick={() => fileInputExcelRef.current?.click()} className="px-3 py-1.5 bg-emerald-900/10 hover:bg-emerald-900/30 text-emerald-400 rounded-lg flex gap-1 items-center text-[10px] transition-colors" title="Importar Excel">
+                                    <Upload size={12} /> Excel
                                 </button>
-                                <button onClick={handleExportText} className="px-3 py-1.5 bg-slate-700/50 hover:bg-slate-700 text-slate-300 rounded-lg flex gap-1 items-center text-xs transition-colors" title="Generar código de respaldo">
-                                    <Save size={14} /> Respaldo
+                                <button onClick={() => fileInputJsonRef.current?.click()} className="px-3 py-1.5 bg-indigo-900/20 hover:bg-indigo-900/40 text-indigo-400 rounded-lg flex gap-1 items-center text-[10px] transition-colors" title="Importar Respaldo JSON">
+                                    <Upload size={12} /> Importar
+                                </button>
+                                <button onClick={handleExportJSON} className="px-3 py-1.5 bg-slate-700/30 hover:bg-slate-700/50 text-slate-300 rounded-lg flex gap-1 items-center text-[10px] transition-colors" title="Descargar Respaldo JSON">
+                                    <Download size={12} /> Resp. JSON
+                                </button>
+                                <button onClick={handleExportText} className="px-3 py-1.5 bg-slate-700/30 hover:bg-slate-700/50 text-slate-300 rounded-lg flex gap-1 items-center text-[10px] transition-colors" title="Generar código de respaldo">
+                                    <Save size={12} /> Código
                                 </button>
                             </div>
 
@@ -177,14 +226,22 @@ const ScheduleEditorModal = ({ isOpen, onClose, scheduleToEdit = null, cloneFrom
                 {/* Mobile Menu Dropdown */}
                 {showMobileMenu && (
                     <div className="md:hidden bg-slate-800 border-b border-slate-700 p-4 animate-in slide-in-from-top-2">
-                        <div className="grid grid-cols-2 gap-3 mb-4">
-                            <button onClick={() => { fileInputRef.current?.click(); setShowMobileMenu(false); }} className="p-3 bg-slate-700/50 hover:bg-slate-700 rounded-xl flex flex-col items-center gap-2 text-xs text-slate-300 transition-colors">
-                                <Upload size={20} className="text-emerald-400" />
+                        <div className="grid grid-cols-2 gap-2 mb-4">
+                            <button onClick={() => { fileInputExcelRef.current?.click(); setShowMobileMenu(false); }} className="p-2 bg-slate-700/50 hover:bg-slate-700 rounded-xl flex flex-col items-center gap-1 text-[10px] text-slate-300 transition-colors">
+                                <Upload size={16} className="text-emerald-400" />
                                 Importar Excel
                             </button>
-                            <button onClick={() => { handleExportText(); setShowMobileMenu(false); }} className="p-3 bg-slate-700/50 hover:bg-slate-700 rounded-xl flex flex-col items-center gap-2 text-xs text-slate-300 transition-colors">
-                                <Save size={20} className="text-blue-400" />
-                                Respaldo
+                            <button onClick={() => { fileInputJsonRef.current?.click(); setShowMobileMenu(false); }} className="p-2 bg-slate-700/50 hover:bg-slate-700 rounded-xl flex flex-col items-center gap-1 text-[10px] text-slate-300 transition-colors">
+                                <Upload size={16} className="text-indigo-400" />
+                                Importar JSON
+                            </button>
+                            <button onClick={() => { handleExportJSON(); setShowMobileMenu(false); }} className="p-2 bg-slate-700/50 hover:bg-slate-700 rounded-xl flex flex-col items-center gap-1 text-[10px] text-slate-300 transition-colors">
+                                <Download size={16} className="text-blue-400" />
+                                Respaldo JSON
+                            </button>
+                            <button onClick={() => { handleExportText(); setShowMobileMenu(false); }} className="p-2 bg-slate-700/50 hover:bg-slate-700 rounded-xl flex flex-col items-center gap-1 text-[10px] text-slate-300 transition-colors">
+                                <Save size={16} className="text-slate-400" />
+                                Código Respaldo
                             </button>
                         </div>
 
@@ -292,13 +349,15 @@ const ScheduleEditorModal = ({ isOpen, onClose, scheduleToEdit = null, cloneFrom
                     <ScheduleGrid startHour={START_HOUR} endHour={END_HOUR} pixelsPerMinute={PIXELS_PER_MINUTE} flatBlocks={flatBlocks} canEdit={true} onRemoveBlock={removeBlock} />
                 </div>
 
-                <input type="file" ref={fileInputRef} hidden accept=".xlsx" onChange={async (e) => {
+                <input type="file" ref={fileInputExcelRef} hidden accept=".xlsx" onChange={async (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
                     const result = await parseScheduleExcel(await file.arrayBuffer());
                     if (result.success) setScheduleData(result.scheduleData);
                     e.target.value = null;
                 }} />
+
+                <input type="file" ref={fileInputJsonRef} hidden accept=".json" onChange={handleImportJSON} />
 
                 {showExportModal && (
                     <div className="absolute inset-0 bg-slate-900/95 flex items-center justify-center z-[60] p-4">

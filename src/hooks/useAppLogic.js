@@ -39,6 +39,23 @@ export const useAppLogic = () => {
             onSave: handleSaveSchedule
         });
     };
+
+    const handleImportSchedules = (importedSchedules) => {
+        if (!Array.isArray(importedSchedules)) return;
+        
+        setSchedules(prev => {
+            const newSchedules = [...prev];
+            importedSchedules.forEach(imported => {
+                const index = newSchedules.findIndex(s => s.id === imported.id);
+                if (index >= 0) {
+                    newSchedules[index] = imported;
+                } else {
+                    newSchedules.push(imported);
+                }
+            });
+            return newSchedules;
+        });
+    };
     return {
         currentUser: { uid: 'admin-local', displayName: 'Admin' },
         schedules,
@@ -46,6 +63,7 @@ export const useAppLogic = () => {
         actions,
         handleLogout: logout,
         handleEditSchedule,
+        handleImportSchedules,
         login,
         isAuthenticated
     };
